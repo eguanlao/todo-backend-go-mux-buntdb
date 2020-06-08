@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/eguanlao/todo-backend-go-mux-buntdb/todo"
 	"github.com/gorilla/mux"
@@ -12,11 +11,6 @@ import (
 )
 
 func main() {
-	for _, e := range os.Environ() {
-		pair := strings.SplitN(e, "=", 2)
-		log.Println(pair[0], "=", pair[1])
-	}
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatal("env var PORT is empty")
