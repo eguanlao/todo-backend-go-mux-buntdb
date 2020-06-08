@@ -14,7 +14,7 @@ import (
 func main() {
 	for _, e := range os.Environ() {
 		pair := strings.SplitN(e, "=", 2)
-		log.Println(pair[0])
+		log.Println(pair[0], "=", pair[1])
 	}
 
 	port := os.Getenv("PORT")
