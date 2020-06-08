@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/eguanlao/todo-backend-go-mux-buntdb/todo"
 	"github.com/gorilla/mux"
@@ -10,6 +11,11 @@ import (
 )
 
 func main() {
+	port := os.Getenv("PORT")
+	if port == "" {
+		log.Fatal("env var PORT is empty")
+	}
+
 	db, err := buntdb.Open(":memory:")
 	if err != nil {
 		log.Fatal(err)
@@ -30,7 +36,7 @@ func main() {
 	r.Use(mux.CORSMethodMiddleware(r))
 	r.Use(responseHeaderSetter)
 
-	log.Fatal(http.ListenAndServe(":8000", r))
+	log.Fatal(http.ListenAndServe(":"+port, r))
 	defer db.Close()
 }
 

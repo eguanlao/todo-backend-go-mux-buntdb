@@ -1,7 +1,9 @@
 GOLANGCI_LINT_VERSION=v1.27.0
 
+all: clean lint test build
+
 clean:
-	go clean -v
+	go clean -x
 
 lint:
 	# Make sure you have golangci-lint installed first.
