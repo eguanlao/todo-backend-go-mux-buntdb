@@ -3,6 +3,7 @@ package todo
 import (
 	"encoding/json"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/tidwall/buntdb"
@@ -56,7 +57,7 @@ func (h getHandler) getOne(w http.ResponseWriter, r *http.Request) {
 
 func getURL(r *http.Request, key string) string {
 	scheme := "http://"
-	if r.TLS != nil {
+	if os.Getenv("PORT") != "" {
 		scheme = "https://"
 	}
 	return scheme + r.Host + "/" + key
