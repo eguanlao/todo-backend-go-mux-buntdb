@@ -1,1 +1,1 @@
-web: todo-backend-go-mux-buntdb
+web: bin/todo-backend-go-mux-buntdb
