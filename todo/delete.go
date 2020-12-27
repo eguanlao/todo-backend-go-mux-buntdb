@@ -4,22 +4,27 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"github.com/tidwall/buntdb"
 )
 
 type deleteHandler struct {
-	db database
+	db *database
 }
 
 // NewDeleteHandler function.
-func NewDeleteHandler(db *buntdb.DB) func(w http.ResponseWriter, r *http.Request) {
+func NewDeleteHandler(db *buntdb.DB) func(w http.ResponseWriter, r *http.Request) error {
 	return deleteHandler{newDatabase(db)}.delete
 }
 
-func (h deleteHandler) delete(w http.ResponseWriter, r *http.Request) {
+func (h deleteHandler) delete(w http.ResponseWriter, r *http.Request) error {
 	key := mux.Vars(r)["key"]
 
 	if err := h.db.delete(key); err != nil {
-		handleInternalServerError(err, w)
+		return errors.Wrap(err, "failed to delete item")
 	}
+
+	w.WriteHeader(http.StatusNoContent)
+
+	return nil
 }
