@@ -7,7 +7,7 @@ import (
 	"github.com/tidwall/buntdb"
 )
 
-func Test_simpleDatabase_getAll(t *testing.T) {
+func Test_database_getAll(t *testing.T) {
 	type fields struct {
 		db *buntdb.DB
 	}
@@ -44,11 +44,11 @@ func Test_simpleDatabase_getAll(t *testing.T) {
 	for _, tt := range tests {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
-			s := simpleDatabase{
+			d := database{
 				db: test.fields.db,
 			}
 
-			got, err := s.getAll()
+			got, err := d.getAll()
 
 			if err != nil {
 				assert.True(t, test.wantErr)
@@ -61,7 +61,7 @@ func Test_simpleDatabase_getAll(t *testing.T) {
 	}
 }
 
-func Test_simpleDatabase_save_getOne(t *testing.T) {
+func Test_database_save_getOne(t *testing.T) {
 	type fields struct {
 		db *buntdb.DB
 	}
@@ -97,11 +97,11 @@ func Test_simpleDatabase_save_getOne(t *testing.T) {
 	for _, tt := range tests {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
-			s := simpleDatabase{
+			d := database{
 				db: test.fields.db,
 			}
 
-			got, err := s.save(test.args.item)
+			got, err := d.save(test.args.item)
 
 			if err != nil {
 				assert.True(t, test.wantErr)
@@ -109,14 +109,14 @@ func Test_simpleDatabase_save_getOne(t *testing.T) {
 			} else {
 				assert.False(t, test.wantErr)
 				assert.Equal(t, test.want, got)
-				saved, _ := s.getOne(got.Key)
+				saved, _ := d.getOne(got.Key)
 				assert.NotNil(t, saved)
 			}
 		})
 	}
 }
 
-func Test_simpleDatabase_delete(t *testing.T) {
+func Test_database_delete(t *testing.T) {
 	type fields struct {
 		db *buntdb.DB
 	}
@@ -133,10 +133,10 @@ func Test_simpleDatabase_delete(t *testing.T) {
 		return db
 	}
 
-	populateDB := func(s simpleDatabase) {
-		_, _ = s.save(Item{Key: "1", Title: "dummy title 1"})
-		_, _ = s.save(Item{Key: "2", Title: "dummy title 2", Completed: true, Order: 2})
-		_, _ = s.save(Item{Key: "3", Title: "dummy title 3", Completed: true})
+	populateDB := func(d database) {
+		_, _ = d.save(Item{Key: "1", Title: "dummy title 1"})
+		_, _ = d.save(Item{Key: "2", Title: "dummy title 2", Completed: true, Order: 2})
+		_, _ = d.save(Item{Key: "3", Title: "dummy title 3", Completed: true})
 	}
 
 	tests := []struct {
@@ -163,19 +163,19 @@ func Test_simpleDatabase_delete(t *testing.T) {
 	for _, tt := range tests {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
-			s := simpleDatabase{
+			d := database{
 				db: test.fields.db,
 			}
 
-			populateDB(s)
+			populateDB(d)
 
-			err := s.delete(test.args.key)
+			err := d.delete(test.args.key)
 
 			if err != nil {
 				assert.True(t, test.wantErr)
 			} else {
 				assert.False(t, test.wantErr)
-				items, _ := s.getAll()
+				items, _ := d.getAll()
 				assert.Equal(t, test.wantLen, len(items))
 			}
 		})

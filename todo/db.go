@@ -16,25 +16,18 @@ type Item struct {
 	Order     int    `json:"order"`
 }
 
-type database interface {
-	getAll() ([]Item, error)
-	save(Item) (Item, error)
-	delete(string) error
-	getOne(string) (Item, error)
-}
-
-type simpleDatabase struct {
+type database struct {
 	db *buntdb.DB
 }
 
-func newDatabase(db *buntdb.DB) database {
-	return &simpleDatabase{db}
+func newDatabase(db *buntdb.DB) *database {
+	return &database{db}
 }
 
-func (s simpleDatabase) getAll() ([]Item, error) {
+func (d database) getAll() ([]Item, error) {
 	items := make([]Item, 0)
 
-	err := s.db.View(func(tx *buntdb.Tx) error {
+	err := d.db.View(func(tx *buntdb.Tx) error {
 		_ = tx.Ascend("order", func(k, v string) bool {
 			item := Item{}
 			_ = json.Unmarshal([]byte(v), &item)
@@ -50,8 +43,8 @@ func (s simpleDatabase) getAll() ([]Item, error) {
 	return items, nil
 }
 
-func (s simpleDatabase) save(item Item) (Item, error) {
-	err := s.db.Update(func(tx *buntdb.Tx) error {
+func (d database) save(item Item) (Item, error) {
+	err := d.db.Update(func(tx *buntdb.Tx) error {
 		k := item.Key
 		itemBytes, _ := json.Marshal(item)
 		v := string(itemBytes)
@@ -65,8 +58,8 @@ func (s simpleDatabase) save(item Item) (Item, error) {
 	return item, nil
 }
 
-func (s simpleDatabase) delete(key string) error {
-	err := s.db.Update(func(tx *buntdb.Tx) error {
+func (d database) delete(key string) error {
+	err := d.db.Update(func(tx *buntdb.Tx) error {
 		delkeys := make([]string, 0)
 
 		_ = tx.Ascend("", func(k, v string) bool {
@@ -95,10 +88,10 @@ func (s simpleDatabase) delete(key string) error {
 	return nil
 }
 
-func (s simpleDatabase) getOne(key string) (Item, error) {
+func (d database) getOne(key string) (Item, error) {
 	var item Item
 
-	err := s.db.View(func(tx *buntdb.Tx) error {
+	err := d.db.View(func(tx *buntdb.Tx) error {
 		v, _ := tx.Get(key)
 		val := Item{}
 		_ = json.Unmarshal([]byte(v), &val)

@@ -1,5 +1,7 @@
 GOLANGCI_LINT_VERSION=v1.27.0
 
+.PHONY: clean lint test
+
 all: clean lint test build
 
 clean:

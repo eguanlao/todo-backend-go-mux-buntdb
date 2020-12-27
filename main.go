@@ -26,18 +26,26 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", todo.NewGetAllHandler(db)).Methods("GET", "OPTIONS")
-	r.HandleFunc("/", todo.NewSaveHandler(db)).Methods("POST")
-	r.HandleFunc("/", todo.NewDeleteHandler(db)).Methods("DELETE")
-	r.HandleFunc("/{key}", todo.NewGetOneHandler(db)).Methods("GET", "OPTIONS")
-	r.HandleFunc("/{key}", todo.NewUpdateHandler(db)).Methods("PATCH")
-	r.HandleFunc("/{key}", todo.NewDeleteHandler(db)).Methods("DELETE")
+	r.Handle("/", appHandler(todo.NewGetAllHandler(db))).Methods("GET", "OPTIONS")
+	r.Handle("/", appHandler(todo.NewSaveHandler(db))).Methods("POST")
+	r.Handle("/", appHandler(todo.NewDeleteHandler(db))).Methods("DELETE")
+	r.Handle("/{key}", appHandler(todo.NewGetOneHandler(db))).Methods("GET", "OPTIONS")
+	r.Handle("/{key}", appHandler(todo.NewUpdateHandler(db))).Methods("PATCH")
+	r.Handle("/{key}", appHandler(todo.NewDeleteHandler(db))).Methods("DELETE")
 
 	r.Use(mux.CORSMethodMiddleware(r))
 	r.Use(responseHeaderSetter)
 
 	log.Fatal(http.ListenAndServe(":"+port, r))
 	defer db.Close()
+}
+
+type appHandler func(http.ResponseWriter, *http.Request) error
+
+func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if err := fn(w, r); err != nil {
+		http.Error(w, err.Error(), 500)
+	}
 }
 
 func responseHeaderSetter(next http.Handler) http.Handler {
