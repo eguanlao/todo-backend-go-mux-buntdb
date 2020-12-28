@@ -6,33 +6,31 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/pkg/errors"
 	"github.com/tidwall/buntdb"
 )
 
 type saveHandler struct {
-	db *database
+	generateKey func() string
+	saveItem    func(Item) (Item, error)
 }
 
 // NewSaveHandler function.
 func NewSaveHandler(db *buntdb.DB) func(w http.ResponseWriter, r *http.Request) error {
-	return saveHandler{newDatabase(db)}.save
+	return saveHandler{func() string { return uuid.New().String() }, newDatabase(db).save}.save
 }
 
-func (h saveHandler) save(w http.ResponseWriter, r *http.Request) error {
-	key := uuid.New().String()
-	requestBytes, _ := ioutil.ReadAll(r.Body)
+func (s saveHandler) save(w http.ResponseWriter, r *http.Request) error {
+	key := s.generateKey()
+	requestBody, _ := ioutil.ReadAll(r.Body)
 
-	item := Item{
-		Key: key,
-	}
-	if err := json.Unmarshal(requestBytes, &item); err != nil {
-		return errors.Wrap(err, "failed to unmarshal request bytes")
+	item := Item{Key: key}
+	if err := json.Unmarshal(requestBody, &item); err != nil {
+		return &Error{err, "failed to unmarshal request body", http.StatusBadRequest}
 	}
 
-	saved, err := h.db.save(item)
+	saved, err := s.saveItem(item)
 	if err != nil {
-		return errors.Wrap(err, "failed to save item")
+		return &Error{err, "failed to save item", http.StatusInternalServerError}
 	}
 
 	saved.URL = getURL(r, item.Key)
@@ -40,7 +38,7 @@ func (h saveHandler) save(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Add("Location", saved.URL)
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(saved); err != nil {
-		return errors.Wrap(err, "failed to encode response")
+		return &Error{err, "failed to encode response", http.StatusInternalServerError}
 	}
 
 	return nil

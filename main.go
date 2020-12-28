@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -44,6 +45,11 @@ type appHandler func(http.ResponseWriter, *http.Request) error
 
 func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := fn(w, r); err != nil {
+		var te *todo.Error
+		if errors.As(err, &te) {
+			http.Error(w, te.Message, te.Code)
+			return
+		}
 		http.Error(w, err.Error(), 500)
 	}
 }

@@ -7,47 +7,47 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/imdario/mergo"
-	"github.com/pkg/errors"
 	"github.com/tidwall/buntdb"
 )
 
 type updateHandler struct {
-	db *database
+	getOneItem func(string) (Item, error)
+	saveItem   func(Item) (Item, error)
 }
 
 // NewUpdateHandler function.
 func NewUpdateHandler(db *buntdb.DB) func(w http.ResponseWriter, r *http.Request) error {
-	return updateHandler{newDatabase(db)}.update
+	return updateHandler{newDatabase(db).getOne, newDatabase(db).save}.update
 }
 
-func (h updateHandler) update(w http.ResponseWriter, r *http.Request) error {
+func (u updateHandler) update(w http.ResponseWriter, r *http.Request) error {
 	key := mux.Vars(r)["key"]
-	requestBytes, _ := ioutil.ReadAll(r.Body)
+	requestBody, _ := ioutil.ReadAll(r.Body)
 
 	update := Item{}
-	if err := json.Unmarshal(requestBytes, &update); err != nil {
-		return errors.Wrap(err, "failed to unmarshal request body")
+	if err := json.Unmarshal(requestBody, &update); err != nil {
+		return &Error{err, "failed to unmarshal request body", http.StatusBadRequest}
 	}
 
-	item, err := h.db.getOne(key)
+	item, err := u.getOneItem(key)
 	if err != nil {
-		return errors.Wrap(err, "failed to get item")
+		return &Error{err, "failed to get one item", http.StatusInternalServerError}
 	}
 
 	if err = mergo.Merge(&item, update, mergo.WithOverride); err != nil {
-		handleInternalServerError(err, w)
-		return errors.Wrap(err, "failed to merge structs")
+		return &Error{err, "failed to merge structs", http.StatusInternalServerError}
 	}
 
-	saved, err := h.db.save(item)
+	saved, err := u.saveItem(item)
 	if err != nil {
-		return errors.Wrap(err, "failed to save item")
+		return &Error{err, "failed to save item", http.StatusInternalServerError}
 	}
 
 	saved.URL = getURL(r, item.Key)
 
+	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(saved); err != nil {
-		return errors.Wrap(err, "failed to encode response")
+		return &Error{err, "failed to encode response", http.StatusInternalServerError}
 	}
 
 	return nil

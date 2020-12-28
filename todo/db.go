@@ -24,7 +24,7 @@ func newDatabase(db *buntdb.DB) *database {
 	return &database{db}
 }
 
-func (d database) getAll() ([]Item, error) {
+func (d *database) getAll() ([]Item, error) {
 	items := make([]Item, 0)
 
 	err := d.db.View(func(tx *buntdb.Tx) error {
@@ -43,7 +43,7 @@ func (d database) getAll() ([]Item, error) {
 	return items, nil
 }
 
-func (d database) save(item Item) (Item, error) {
+func (d *database) save(item Item) (Item, error) {
 	err := d.db.Update(func(tx *buntdb.Tx) error {
 		k := item.Key
 		itemBytes, _ := json.Marshal(item)
@@ -58,7 +58,7 @@ func (d database) save(item Item) (Item, error) {
 	return item, nil
 }
 
-func (d database) delete(key string) error {
+func (d *database) delete(key string) error {
 	err := d.db.Update(func(tx *buntdb.Tx) error {
 		delkeys := make([]string, 0)
 
@@ -88,7 +88,7 @@ func (d database) delete(key string) error {
 	return nil
 }
 
-func (d database) getOne(key string) (Item, error) {
+func (d *database) getOne(key string) (Item, error) {
 	var item Item
 
 	err := d.db.View(func(tx *buntdb.Tx) error {
