@@ -6,23 +6,23 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/pkg/errors"
 	"github.com/tidwall/buntdb"
 )
 
 type getHandler struct {
-	db *database
+	getAllItems func() ([]Item, error)
+	getOneItem  func(string) (Item, error)
 }
 
 // NewGetAllHandler function.
 func NewGetAllHandler(db *buntdb.DB) func(w http.ResponseWriter, r *http.Request) error {
-	return getHandler{newDatabase(db)}.getAll
+	return getHandler{getAllItems: newDatabase(db).getAll}.getAll
 }
 
-func (h getHandler) getAll(w http.ResponseWriter, r *http.Request) error {
-	items, err := h.db.getAll()
+func (g getHandler) getAll(w http.ResponseWriter, r *http.Request) error {
+	items, err := g.getAllItems()
 	if err != nil {
-		return errors.Wrap(err, "failed to get all items")
+		return &Error{err, "failed to get all items", http.StatusInternalServerError}
 	}
 
 	for i := range items {
@@ -31,7 +31,7 @@ func (h getHandler) getAll(w http.ResponseWriter, r *http.Request) error {
 
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(items); err != nil {
-		return errors.Wrap(err, "failed to encode items")
+		return &Error{err, "failed to encode response", http.StatusInternalServerError}
 	}
 
 	return nil
@@ -39,22 +39,22 @@ func (h getHandler) getAll(w http.ResponseWriter, r *http.Request) error {
 
 // NewGetOneHandler function.
 func NewGetOneHandler(db *buntdb.DB) func(w http.ResponseWriter, r *http.Request) error {
-	return getHandler{newDatabase(db)}.getOne
+	return getHandler{getOneItem: newDatabase(db).getOne}.getOne
 }
 
-func (h getHandler) getOne(w http.ResponseWriter, r *http.Request) error {
+func (g getHandler) getOne(w http.ResponseWriter, r *http.Request) error {
 	key := mux.Vars(r)["key"]
 
-	item, err := h.db.getOne(key)
+	item, err := g.getOneItem(key)
 	if err != nil {
-		return errors.Wrap(err, "failed to get item")
+		return &Error{err, "failed to get one item", http.StatusInternalServerError}
 	}
 
 	item.URL = getURL(r, item.Key)
 
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(item); err != nil {
-		return errors.Wrap(err, "failed to encode response")
+		return &Error{err, "failed to encode response", http.StatusInternalServerError}
 	}
 
 	return nil
