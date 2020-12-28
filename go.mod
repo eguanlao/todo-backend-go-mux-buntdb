@@ -1,5 +1,6 @@
 module github.com/eguanlao/todo-backend-go-mux-buntdb
 
+// +heroku goVersion go1.13
 go 1.13
 
 require (
