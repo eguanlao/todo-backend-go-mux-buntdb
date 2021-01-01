@@ -32,7 +32,7 @@ func Test_database_getAll(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name:   "ShouldReturnItems",
+			name:   "should_return_items",
 			fields: fields{stubDBWithItems(db)},
 			want: []Item{
 				{Title: "dummy title 1"},
@@ -87,7 +87,7 @@ func Test_database_save_getOne(t *testing.T) {
 		saved   func() bool
 	}{
 		{
-			name:   "ShouldSaveItem",
+			name:   "should_save_item",
 			fields: fields{stubDB(db)},
 			args:   args{item: Item{Title: "dummy title 1"}},
 			want:   Item{Title: "dummy title 1"},
@@ -147,13 +147,13 @@ func Test_database_delete(t *testing.T) {
 		wantLen int
 	}{
 		{
-			name:    "ShouldDeleteItem",
+			name:    "should_delete_item",
 			fields:  fields{stubDB(db)},
 			args:    args{"2"},
 			wantLen: 2,
 		},
 		{
-			name:    "ShouldDeleteAllItems",
+			name:    "should_delete_all_items",
 			fields:  fields{stubDB(db)},
 			args:    args{},
 			wantLen: 0,
