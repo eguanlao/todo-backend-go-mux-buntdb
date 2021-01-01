@@ -17,10 +17,11 @@ type updateHandler struct {
 
 // NewUpdateHandler function.
 func NewUpdateHandler(db *buntdb.DB) func(w http.ResponseWriter, r *http.Request) error {
-	return updateHandler{newDatabase(db).getOne, newDatabase(db).save}.update
+	h := &updateHandler{newDatabase(db).getOne, newDatabase(db).save}
+	return h.update
 }
 
-func (u updateHandler) update(w http.ResponseWriter, r *http.Request) error {
+func (h *updateHandler) update(w http.ResponseWriter, r *http.Request) error {
 	key := mux.Vars(r)["key"]
 	requestBody, _ := ioutil.ReadAll(r.Body)
 
@@ -29,7 +30,7 @@ func (u updateHandler) update(w http.ResponseWriter, r *http.Request) error {
 		return &Error{err, "failed to unmarshal request body", http.StatusBadRequest}
 	}
 
-	item, err := u.getOneItem(key)
+	item, err := h.getOneItem(key)
 	if err != nil {
 		return &Error{err, "failed to get one item", http.StatusInternalServerError}
 	}
@@ -38,7 +39,7 @@ func (u updateHandler) update(w http.ResponseWriter, r *http.Request) error {
 		return &Error{err, "failed to merge structs", http.StatusInternalServerError}
 	}
 
-	saved, err := u.saveItem(item)
+	saved, err := h.saveItem(item)
 	if err != nil {
 		return &Error{err, "failed to save item", http.StatusInternalServerError}
 	}

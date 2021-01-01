@@ -81,14 +81,14 @@ func Test_updateHandler_update(t *testing.T) {
 	for _, tt := range tests {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
-			u := updateHandler{
+			h := &updateHandler{
 				getOneItem: test.fields.getOneItem,
 				saveItem:   test.fields.saveItem,
 			}
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("", "/", test.args.body)
 
-			err := u.update(w, req)
+			err := h.update(w, req)
 
 			if err != nil {
 				assert.True(t, test.wantErr)
