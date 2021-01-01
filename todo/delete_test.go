@@ -46,7 +46,7 @@ func Test_deleteHandler_delete(t *testing.T) {
 	for _, tt := range tests {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
-			h := deleteHandler{
+			h := &deleteHandler{
 				deleteItem: test.fields.deleteItem,
 			}
 			w := httptest.NewRecorder()

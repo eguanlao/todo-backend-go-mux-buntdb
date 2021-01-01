@@ -9,18 +9,18 @@ import (
 	"github.com/tidwall/buntdb"
 )
 
-type getHandler struct {
+type getAllHandler struct {
 	getAllItems func() ([]Item, error)
-	getOneItem  func(string) (Item, error)
 }
 
 // NewGetAllHandler function.
 func NewGetAllHandler(db *buntdb.DB) func(w http.ResponseWriter, r *http.Request) error {
-	return getHandler{getAllItems: newDatabase(db).getAll}.getAll
+	h := &getAllHandler{newDatabase(db).getAll}
+	return h.getAll
 }
 
-func (g getHandler) getAll(w http.ResponseWriter, r *http.Request) error {
-	items, err := g.getAllItems()
+func (h *getAllHandler) getAll(w http.ResponseWriter, r *http.Request) error {
+	items, err := h.getAllItems()
 	if err != nil {
 		return &Error{err, "failed to get all items", http.StatusInternalServerError}
 	}
@@ -37,15 +37,20 @@ func (g getHandler) getAll(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-// NewGetOneHandler function.
-func NewGetOneHandler(db *buntdb.DB) func(w http.ResponseWriter, r *http.Request) error {
-	return getHandler{getOneItem: newDatabase(db).getOne}.getOne
+type getOneHandler struct {
+	getOneItem func(string) (Item, error)
 }
 
-func (g getHandler) getOne(w http.ResponseWriter, r *http.Request) error {
+// NewGetOneHandler function.
+func NewGetOneHandler(db *buntdb.DB) func(w http.ResponseWriter, r *http.Request) error {
+	h := &getOneHandler{newDatabase(db).getOne}
+	return h.getOne
+}
+
+func (h *getOneHandler) getOne(w http.ResponseWriter, r *http.Request) error {
 	key := mux.Vars(r)["key"]
 
-	item, err := g.getOneItem(key)
+	item, err := h.getOneItem(key)
 	if err != nil {
 		return &Error{err, "failed to get one item", http.StatusInternalServerError}
 	}

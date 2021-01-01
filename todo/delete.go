@@ -13,13 +13,14 @@ type deleteHandler struct {
 
 // NewDeleteHandler function.
 func NewDeleteHandler(db *buntdb.DB) func(w http.ResponseWriter, r *http.Request) error {
-	return deleteHandler{newDatabase(db).delete}.delete
+	h := &deleteHandler{newDatabase(db).delete}
+	return h.delete
 }
 
-func (d deleteHandler) delete(w http.ResponseWriter, r *http.Request) error {
+func (h *deleteHandler) delete(w http.ResponseWriter, r *http.Request) error {
 	key := mux.Vars(r)["key"]
 
-	if err := d.deleteItem(key); err != nil {
+	if err := h.deleteItem(key); err != nil {
 		return &Error{err, "failed to delete item", http.StatusInternalServerError}
 	}
 

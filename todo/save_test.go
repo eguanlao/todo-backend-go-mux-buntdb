@@ -64,14 +64,14 @@ func Test_saveHandler_save(t *testing.T) {
 	for _, tt := range tests {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
-			s := saveHandler{
+			h := &saveHandler{
 				generateKey: stubGenerateKey,
 				saveItem:    test.fields.saveItem,
 			}
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("", "/", test.args.body)
 
-			err := s.save(w, req)
+			err := h.save(w, req)
 
 			if err != nil {
 				assert.True(t, test.wantErr)

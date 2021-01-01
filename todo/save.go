@@ -16,11 +16,12 @@ type saveHandler struct {
 
 // NewSaveHandler function.
 func NewSaveHandler(db *buntdb.DB) func(w http.ResponseWriter, r *http.Request) error {
-	return saveHandler{func() string { return uuid.New().String() }, newDatabase(db).save}.save
+	h := &saveHandler{func() string { return uuid.New().String() }, newDatabase(db).save}
+	return h.save
 }
 
-func (s saveHandler) save(w http.ResponseWriter, r *http.Request) error {
-	key := s.generateKey()
+func (h *saveHandler) save(w http.ResponseWriter, r *http.Request) error {
+	key := h.generateKey()
 	requestBody, _ := ioutil.ReadAll(r.Body)
 
 	item := Item{Key: key}
@@ -28,7 +29,7 @@ func (s saveHandler) save(w http.ResponseWriter, r *http.Request) error {
 		return &Error{err, "failed to unmarshal request body", http.StatusBadRequest}
 	}
 
-	saved, err := s.saveItem(item)
+	saved, err := h.saveItem(item)
 	if err != nil {
 		return &Error{err, "failed to save item", http.StatusInternalServerError}
 	}

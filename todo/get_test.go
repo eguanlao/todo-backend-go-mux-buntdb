@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_getHandler_getAll(t *testing.T) {
+func Test_getAllHandler_getAll(t *testing.T) {
 	t.Parallel()
 
 	type fields struct {
@@ -28,7 +28,7 @@ func Test_getHandler_getAll(t *testing.T) {
 	}{
 		{
 			name: "should_return_error_given_get_all_items_failure",
-			fields: fields{getAllItems: func() ([]Item, error) {
+			fields: fields{func() ([]Item, error) {
 				return nil, errors.New("error")
 			}},
 			wantErr: true,
@@ -36,7 +36,7 @@ func Test_getHandler_getAll(t *testing.T) {
 		},
 		{
 			name: "should_write_status_ok_given_empty_items",
-			fields: fields{getAllItems: func() ([]Item, error) {
+			fields: fields{func() ([]Item, error) {
 				return []Item{}, nil
 			}},
 			want:  http.StatusOK,
@@ -44,7 +44,7 @@ func Test_getHandler_getAll(t *testing.T) {
 		},
 		{
 			name: "should_write_status_ok_given_non_empty_items",
-			fields: fields{getAllItems: func() ([]Item, error) {
+			fields: fields{func() ([]Item, error) {
 				return []Item{{Key: "some-key"}}, nil
 			}},
 			want:  http.StatusOK,
@@ -55,19 +55,19 @@ func Test_getHandler_getAll(t *testing.T) {
 	for _, tt := range tests {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
-			g := getHandler{
+			h := &getAllHandler{
 				getAllItems: test.fields.getAllItems,
 			}
 			w := httptest.NewRecorder()
 
-			err := g.getAll(w, httptest.NewRequest("", "/", nil))
+			err := h.getAll(w, httptest.NewRequest("", "/", nil))
 
 			makeAssertions(t, w, err, test.want, test.want1, test.wantErr, test.errMsg)
 		})
 	}
 }
 
-func Test_getHandler_getOne(t *testing.T) {
+func Test_getOneHandler_getOne(t *testing.T) {
 	t.Parallel()
 
 	type fields struct {
@@ -84,7 +84,7 @@ func Test_getHandler_getOne(t *testing.T) {
 	}{
 		{
 			name: "should_return_error_given_get_one_item_failure",
-			fields: fields{getOneItem: func(string) (Item, error) {
+			fields: fields{func(string) (Item, error) {
 				return Item{}, errors.New("error")
 			}},
 			wantErr: true,
@@ -92,7 +92,7 @@ func Test_getHandler_getOne(t *testing.T) {
 		},
 		{
 			name: "should_write_status_ok_given_non_nil_item",
-			fields: fields{getOneItem: func(string) (Item, error) {
+			fields: fields{func(string) (Item, error) {
 				return Item{Key: "some-key"}, nil
 			}},
 			want:  http.StatusOK,
@@ -103,12 +103,12 @@ func Test_getHandler_getOne(t *testing.T) {
 	for _, tt := range tests {
 		test := tt
 		t.Run(test.name, func(t *testing.T) {
-			g := getHandler{
+			h := &getOneHandler{
 				getOneItem: test.fields.getOneItem,
 			}
 			w := httptest.NewRecorder()
 
-			err := g.getOne(w, httptest.NewRequest("", "/", nil))
+			err := h.getOne(w, httptest.NewRequest("", "/", nil))
 
 			makeAssertions(t, w, err, test.want, test.want1, test.wantErr, test.errMsg)
 		})
