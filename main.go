@@ -14,7 +14,7 @@ import (
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatal("env var PORT is empty")
+		port = "8000"
 	}
 
 	db, err := buntdb.Open(":memory:")
